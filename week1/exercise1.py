@@ -1,3 +1,5 @@
+### change of convolutions from 32 to 64
+
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from tensorflow.keras import models
@@ -40,7 +42,7 @@ model = tf.keras.models.Sequential([
 
     # First Convolution Layer
     tf.keras.layers.Conv2D(
-        32,
+        64,
         (3, 3),
         activation='relu',
         input_shape=(28, 28, 1)
