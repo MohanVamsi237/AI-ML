@@ -1,0 +1,14 @@
+# Datasets
+week1/dogs-vs-cats/
+week1/horse-or-human/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# TensorFlow model files
+*.h5
+*.keras
+
+# Virtual environments
+venv/
