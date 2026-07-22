@@ -4,7 +4,6 @@ import tensorflow as tf
 
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.preprocessing import image
 
 import matplotlib.pyplot as plt
 
@@ -16,7 +15,6 @@ import matplotlib.pyplot as plt
 
 
 print("TensorFlow Version:", tf.__version__)
-
 
 
 # =====================================================
@@ -47,18 +45,15 @@ print("================================")
 
 
 if not os.path.exists(TRAINING_DIR):
-
     print("Training folder not found!")
-
     exit()
 
 
 
 if not os.path.exists(TESTING_DIR):
-
     print("Testing folder not found!")
-
     exit()
+
 
 
 
@@ -70,8 +65,7 @@ if not os.path.exists(TESTING_DIR):
 model = tf.keras.models.Sequential([
 
 
-
-    # Convolution Layer 1
+    # First Convolution
 
     tf.keras.layers.Conv2D(
 
@@ -86,7 +80,6 @@ model = tf.keras.models.Sequential([
     ),
 
 
-
     tf.keras.layers.MaxPooling2D(
 
         2,2
@@ -95,7 +88,7 @@ model = tf.keras.models.Sequential([
 
 
 
-    # Convolution Layer 2
+    # Second Convolution
 
     tf.keras.layers.Conv2D(
 
@@ -108,7 +101,6 @@ model = tf.keras.models.Sequential([
     ),
 
 
-
     tf.keras.layers.MaxPooling2D(
 
         2,2
@@ -117,7 +109,7 @@ model = tf.keras.models.Sequential([
 
 
 
-    # Convolution Layer 3
+    # Third Convolution
 
     tf.keras.layers.Conv2D(
 
@@ -130,7 +122,6 @@ model = tf.keras.models.Sequential([
     ),
 
 
-
     tf.keras.layers.MaxPooling2D(
 
         2,2
@@ -139,13 +130,13 @@ model = tf.keras.models.Sequential([
 
 
 
-    # Convert feature maps into vector
+    # Flatten
 
     tf.keras.layers.Flatten(),
 
 
 
-    # Dense layer
+    # Dense Layer
 
     tf.keras.layers.Dense(
 
@@ -157,7 +148,7 @@ model = tf.keras.models.Sequential([
 
 
 
-    # Output
+    # Output Layer
 
     # 0 = Cat
     # 1 = Dog
@@ -174,6 +165,8 @@ model = tf.keras.models.Sequential([
 
 
 
+
+
 # =====================================================
 # STEP 3: MODEL SUMMARY
 # =====================================================
@@ -182,6 +175,8 @@ model = tf.keras.models.Sequential([
 print("\n========== MODEL SUMMARY ==========")
 
 model.summary()
+
+
 
 
 
@@ -198,7 +193,9 @@ model.compile(
 
     ),
 
+
     loss="binary_crossentropy",
+
 
     metrics=["accuracy"]
 
@@ -206,12 +203,15 @@ model.compile(
 
 
 
-print("\nModel compiled successfully")
+print("\nModel compiled successfully!")
+
+
+
 
 
 
 # =====================================================
-# STEP 5: CREATE IMAGE GENERATORS
+# STEP 5: IMAGE DATA GENERATORS
 # =====================================================
 
 
@@ -231,33 +231,35 @@ validation_datagen = ImageDataGenerator(
 
 
 
-# Training images
+
+# Training data
 
 train_generator = train_datagen.flow_from_directory(
 
     TRAINING_DIR,
 
+    target_size=(150,150),
+
     batch_size=32,
 
-    class_mode="binary",
-
-    target_size=(150,150)
+    class_mode="binary"
 
 )
 
 
 
-# Testing images
+
+# Validation data
 
 validation_generator = validation_datagen.flow_from_directory(
 
     TESTING_DIR,
 
+    target_size=(150,150),
+
     batch_size=32,
 
-    class_mode="binary",
-
-    target_size=(150,150)
+    class_mode="binary"
 
 )
 
@@ -267,7 +269,10 @@ print("\n========== CLASS LABELS ==========")
 
 print(train_generator.class_indices)
 
-print("===================================")
+print("==================================")
+
+
+
 
 
 
@@ -276,45 +281,56 @@ print("===================================")
 # =====================================================
 
 
+
 history = model.fit(
 
     train_generator,
 
     epochs=5,
 
-    verbose=1,
+    validation_data=validation_generator,
 
-    validation_data=validation_generator
+    verbose=1
 
 )
 
 
 
-print("\nTraining Completed Successfully")
+print("\nTraining completed successfully!")
+
+
+
+
 
 
 
 # =====================================================
-# STEP 7: PLOT ACCURACY AND LOSS
+# STEP 7: VISUALIZE RESULTS
 # =====================================================
 
 
-acc = history.history["accuracy"]
 
-val_acc = history.history["val_accuracy"]
+accuracy = history.history["accuracy"]
+
+validation_accuracy = history.history["val_accuracy"]
 
 
 loss = history.history["loss"]
 
-val_loss = history.history["val_loss"]
+validation_loss = history.history["val_loss"]
 
 
 
-epochs = range(len(acc))
+epochs = range(1, len(accuracy)+1)
 
 
 
-# Accuracy graph
+
+
+# -----------------------------
+# Accuracy Graph
+# -----------------------------
+
 
 plt.figure(figsize=(8,5))
 
@@ -323,7 +339,7 @@ plt.plot(
 
     epochs,
 
-    acc,
+    accuracy,
 
     label="Training Accuracy"
 
@@ -334,7 +350,7 @@ plt.plot(
 
     epochs,
 
-    val_acc,
+    validation_accuracy,
 
     label="Validation Accuracy"
 
@@ -348,13 +364,37 @@ plt.title(
 )
 
 
+plt.xlabel(
+
+    "Epoch"
+
+)
+
+
+plt.ylabel(
+
+    "Accuracy"
+
+)
+
+
 plt.legend()
+
+
+plt.grid(True)
+
 
 plt.show()
 
 
 
-# Loss graph
+
+
+
+# -----------------------------
+# Loss Graph
+# -----------------------------
+
 
 plt.figure(figsize=(8,5))
 
@@ -374,11 +414,12 @@ plt.plot(
 
     epochs,
 
-    val_loss,
+    validation_loss,
 
     label="Validation Loss"
 
 )
+
 
 
 plt.title(
@@ -388,39 +429,87 @@ plt.title(
 )
 
 
+
+plt.xlabel(
+
+    "Epoch"
+
+)
+
+
+
+plt.ylabel(
+
+    "Loss"
+
+)
+
+
+
 plt.legend()
+
+
+
+plt.grid(True)
+
+
 
 plt.show()
 
 
 
+
+print("\nGraphs generated successfully!")
+
+
 # =====================================================
-# STEP 8: TEST YOUR OWN IMAGE
+# STEP 8: TEST YOUR MODEL
 # =====================================================
 
 
-test_image = r"C:\AIML\week1\test_images\my_image.jpg"
+from tensorflow.keras.preprocessing import image
+
+
+print("\n========== MODEL TESTING ==========")
 
 
 
-if os.path.exists(test_image):
+# Put your image path here
 
+test_image_path = r"C:\AIML\week1\test_images\my_image.jpg"
+
+
+
+# Check if image exists
+
+if os.path.exists(test_image_path):
+
+
+    # Load image
 
     img = image.load_img(
 
-        test_image,
+        test_image_path,
 
         target_size=(150,150)
 
     )
 
 
+
+    # Convert image to array
+
     img_array = image.img_to_array(img)
 
+
+
+    # Normalize pixels
 
     img_array = img_array / 255.0
 
 
+
+    # Add batch dimension
 
     img_array = np.expand_dims(
 
@@ -432,7 +521,13 @@ if os.path.exists(test_image):
 
 
 
-    prediction = model.predict(img_array)
+    # Make prediction
+
+    prediction = model.predict(
+
+        img_array
+
+    )
 
 
 
@@ -442,10 +537,11 @@ if os.path.exists(test_image):
 
 
 
+    # Classification
+
     if prediction[0][0] > 0.5:
 
         print("Prediction: DOG")
-
 
     else:
 
@@ -455,31 +551,15 @@ if os.path.exists(test_image):
 
 else:
 
-    print("\nNo test image found")
 
-    print(
+    print("Image not found!")
 
-        "Place an image here:",
+    print("Place your image here:")
 
-        test_image
-
-    )
+    print(test_image_path)
 
 
 
-# =====================================================
-# STEP 9: SAVE MODEL
-# =====================================================
-
-
-model.save(
-
-    "cats_dogs_classifier.keras"
-
-)
-
-
-
-print("\nModel saved successfully")
-
-print("\n========== PROGRAM COMPLETE ==========")
+print("\n===================================")
+print("Testing Completed!")
+print("===================================")
